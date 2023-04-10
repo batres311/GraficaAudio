@@ -1,5 +1,5 @@
 import winsound
-filename=(r'C:\Users\BHC4SLP\Documents\Proyecto Audio\mi_explosion_03_hpx.wav')
+filename=(r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\ejemplo2.wav')
 winsound.PlaySound(filename,winsound.SND_FILENAME)
 
 import scipy.io.wavfile as waves
