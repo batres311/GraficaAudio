@@ -1,10 +1,10 @@
-import pyaudio
+import pyaudio #Libreria que ayuda para obtener el audio y darle formato
 import wave  #Permite leer y escribir archivos wav
 import winsound #Permite acceder a la maquinaria básica de reproducción de sonidos proporcionada por la plataformas Windows.
-import scipy.io.wavfile as waves
-import numpy as np
-import matplotlib.pyplot as plt
-import scipy.fftpack as fourier
+import scipy.io.wavfile as waves #libreria importante para los datos del audio
+import numpy as np #libreria importante para arrays y matrices
+import matplotlib.pyplot as plt #libreria para graficar resultados
+import scipy.fftpack as fourier #libreria para pasar al dominio de la frecuencia de forma sencilla
 
 duracion=5 #Periodo de grabacion de 5 segundos
 archivo="PruebaAudio1.wav" #Se define el nombre del archivo donde se guardara la grabación
@@ -50,8 +50,7 @@ L=len(Audio_m)  #Se calcula longitud del arreglo que contiene los valores del au
 Ts=0.001        #Se declara tiempo de muestreo de 0.001 segundos
 n=Ts*np.arange(0,L) #Creamos un arreglo de longitud L separado exactamente por Ts
 
-#import matplotlib.pyplot as plt
-
+#Procedimiento para graficar en dominio del tiempo el audio
 fig, ax=plt.subplots()
 plt.plot(n,Audio_m)
 plt.xlabel('Tiempo (s)')
@@ -59,11 +58,12 @@ plt.ylabel('Audio')
 
 
 #import scipy.fftpack as fourier
-gk=fourier.fft(Audio_m)
-M_gk=abs(gk)
-M_gk=M_gk[0:L//2]
+gk=fourier.fft(Audio_m) #Transformada de fourier sobre el vector con los valores del audio
+M_gk=abs(gk)            #Calculo de su valor absoluto de los nuevos valores tras la transformada
+M_gk=M_gk[0:L//2]       #Funcion par asi que basta con analizar la mitad de los valores
+F=(Fs/L)*np.arange(0,L//2) #Se declara un arreglo hasta L medios
 
-F=(Fs/L)*np.arange(0,L//2)
+#Procedimiento para graficar en dominio de la frecuencia el audio y ver su espectro
 fig, bx=plt.subplots()
 plt.plot(F,M_gk)
 plt.xlabel('Frecuencia (Hz)', fontsize='14')
