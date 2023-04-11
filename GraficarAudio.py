@@ -22,7 +22,7 @@ times=np.linspace(0,audio_duration,num=n_samples)
 
 # Graficar señal de audio
 
-plt.figure(figsize=(15,5))
+plt.figure(figsize=(15,15))
 plt.plot(times,signal_array)
 plt.title("AUDIO SIGNAL")
 plt.ylabel("Signal wave")

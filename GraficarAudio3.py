@@ -69,3 +69,4 @@ plt.plot(F,M_gk)
 plt.xlabel('Frecuencia (Hz)', fontsize='14')
 plt.ylabel('Amplitud FFT', fontsize='14')
 plt.show()
+
