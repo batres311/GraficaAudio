@@ -1,31 +1,15 @@
 # Importar librerias
-import wave
 import matplotlib.pyplot as plt
 import numpy as np
+import librosa
 
-# Cargar archivo de audio
-audio=wave.open(r'C:\Users\BHC4SLP\Documents\Proyecto Audio\mi_explosion_03_hpx.wav',"rb")
+file=(r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
+data, sr=librosa.load(file)
 
-# Obtener variables
-sample_freq=audio.getframerate()
-n_samples=audio.getnframes()
-signal_wave=audio.readframes(-1)
+data, _=librosa.effects.trim(data)
 
-audio.close() #Cerramos el archivo de audio
+n=1024
 
-# Duracion del audio
-audio_duration=n_samples/sample_freq
-
-# Signal array
-signal_array=np.frombuffer(signal_wave,dtype=np.int16)
-times=np.linspace(0,audio_duration,num=n_samples)
-
-# Graficar señal de audio
-
-plt.figure(figsize=(15,15))
-plt.plot(times,signal_array)
-plt.title("AUDIO SIGNAL")
-plt.ylabel("Signal wave")
-plt.xlabel("Time in seconds")
-plt.xlim(0,audio_duration)
+fourier=np.abs(librosa.stft(data[:n]))
+plt.plot(fourier)
 plt.show()
