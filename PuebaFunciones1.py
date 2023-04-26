@@ -1,4 +1,5 @@
 import librosa
+import math
 import os
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,12 +11,16 @@ import scipy.fftpack as fourier #libreria para pasar al dominio de la frecuencia
 
 WAVEFORM_path_export = 'waveform'
 SPECTROGRAM_path_export='spectogram'
+GREYSPECTROGRAM_path_export='grey spectrogram'
 CHROMAGRAM_path_export='chromagram'
 MFCC_path_export='mfcc'
 FvsA_path_export='FrequencyAmplitude'
 AMPLITUDEENV_path_export='amplitude envelope'
 RMSE_path_export='root mean square energy'
 ZCR_path_export='zero croosing rate'
+BER_path_export='band energy ratio'
+SpecCent_path_export='spectral centroid'
+Bandwidth_path_export='bandwidth'
 clip = (r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
 
 def LoadAudio_Turn2Decibels(clip):
@@ -36,6 +41,35 @@ def guardarimagen(path_export,NombreImag,fig):
 def fancy_amplitude_envelope(signal, frame_size, hop_length):
     """Fancier Python code to calculate the amplitude envelope of a signal with a given frame size."""
     return np.array([max(signal[i:i+frame_size]) for i in range(0, len(signal), hop_length)])
+
+def calculate_split_frequency_bin(split_frequency, sample_rate, num_frequency_bins):
+    """Infer the frequency bin associated to a given split frequency."""
+    
+    frequency_range = sample_rate / 2
+    frequency_delta_per_bin = frequency_range / num_frequency_bins
+    split_frequency_bin = math.floor(split_frequency / frequency_delta_per_bin)
+    return int(split_frequency_bin)
+
+
+
+def band_energy_ratio(spectrogram, split_frequency, sample_rate):
+    """Calculate band energy ratio with a given split frequency."""
+    
+    split_frequency_bin = calculate_split_frequency_bin(split_frequency, sample_rate, len(spectrogram[0]))
+    band_energy_ratio = []
+    
+    # calculate power spectrogram
+    power_spectrogram = np.abs(spectrogram) ** 2
+    power_spectrogram = power_spectrogram.T
+    
+    # calculate BER value for each frame
+    for frame in power_spectrogram:
+        sum_power_low_frequencies = frame[:split_frequency_bin].sum()
+        sum_power_high_frequencies = frame[split_frequency_bin:].sum()
+        band_energy_ratio_current_frame = sum_power_low_frequencies / sum_power_high_frequencies
+        band_energy_ratio.append(band_energy_ratio_current_frame)
+    
+    return np.array(band_energy_ratio)
 
 y,S_db,sr=LoadAudio_Turn2Decibels(clip)
 
@@ -119,9 +153,18 @@ plt.close()
 # SPECTROGRAM representation - object-oriented interface 
 fig, ax = plt.subplots() 
 img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear', ax=ax) 
-img = librosa.display.specshow(S_db, x_axis='time', y_axis='log', ax=ax, cmap='gray_r') 
+img = librosa.display.specshow(S_db, x_axis='time', y_axis='log', ax=ax) 
 ax.set(title='SPECTROGRAM') 
 guardarimagen(SPECTROGRAM_path_export,'Spectrogram',fig)
+plt.close()
+
+"""Grey Spectrogram"""
+# SPECTROGRAM representation - object-oriented interface 
+fig, ax = plt.subplots() 
+img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear', ax=ax) 
+img = librosa.display.specshow(S_db, x_axis='time', y_axis='log', ax=ax, cmap='gray_r') 
+ax.set(title='GREY SPECTROGRAM') 
+guardarimagen(GREYSPECTROGRAM_path_export,'Grey Spectrogram',fig)
 plt.close()
 
 """Chromogram"""
@@ -140,4 +183,50 @@ fig, ax = plt.subplots()
 img = librosa.display.specshow(mfccs, x_axis='time') 
 ax.set(title='Mel-frequency cepstral coefficients (MFCCs)') 
 guardarimagen(MFCC_path_export,'MFCCs',fig)
+plt.close()
+
+"""Band Energy Ratio"""
+HOP_SIZE=512
+y_spec = librosa.stft(y, n_fft=FRAME_SIZE, hop_length=HOP_SIZE)
+
+split_frequency_bin = calculate_split_frequency_bin(2000, 22050, 1025)
+split_frequency_bin
+
+ber_y = band_energy_ratio(y_spec, 2000, sr)
+len(ber_y)
+#Visualise Band Energy Ratio
+frames = range(len(ber_y))
+t = librosa.frames_to_time(frames, hop_length=HOP_SIZE)
+
+plt.figure(figsize=(25, 10))
+fig, ax = plt.subplots()
+plt.plot(t, ber_y, color="b")
+#plt.ylim((0, 200))
+ax.set(title="Band Energy Ratio")
+guardarimagen(BER_path_export,'Band Energy Ratio',fig)
+plt.close()
+
+"""Spectral Centroid"""
+sc_y = librosa.feature.spectral_centroid(y=y, sr=sr, n_fft=FRAME_SIZE, hop_length=HOP_LENGTH)[0]
+sc_y.shape
+
+#Visualising spectral centroid
+len(t)
+plt.figure(figsize=(25,10))
+fig, ax = plt.subplots()
+plt.plot(t, sc_y, color='b')
+ax.set(title="Spectral Centroid")
+guardarimagen(SpecCent_path_export,'Spectral Centroid',fig)
+plt.close()
+
+"""Bandwidth"""
+#Spectral bandwidth with Librosa
+ban_y = librosa.feature.spectral_bandwidth(y=y, sr=sr, n_fft=FRAME_SIZE, hop_length=HOP_LENGTH)[0]
+ban_y.shape
+#Visualising spectral bandwidth
+plt.figure(figsize=(25,10))
+fig, ax = plt.subplots()
+plt.plot(t, ban_y, color='b')
+ax.set(title="Bandwidth")
+guardarimagen(Bandwidth_path_export,'Bandwidth',fig)
 plt.close()

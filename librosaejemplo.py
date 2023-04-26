@@ -131,7 +131,16 @@ fig, bx=plt.subplots()
 plt.plot(F,M_gk)
 plt.xlabel('Frecuencia (Hz)', fontsize='14')
 plt.ylabel('Amplitud FFT', fontsize='14')
-plt.show()
+#plt.show()
+bx.set(title="Frequency vs Amplitude")
+#The first strips off any trailing slashes, the second gives you the last part of the path. 
+audio_filename = os.path.basename(os.path.normpath(clip)) 
+image_filename_to_save = str(audio_filename).replace(".flac", "-", 1) + "SPECTROGRAM.png" 
+if not os.path.exists(SPECTROGRAM_path_export): 
+    os.makedirs(SPECTROGRAM_path_export) 
+fig.savefig(os.path.join(SPECTROGRAM_path_export,image_filename_to_save)) 
+plt.close()
+
 # SPECTROGRAM representation - object-oriented interface 
 fig, ax = plt.subplots() 
 img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear', ax=ax) 
