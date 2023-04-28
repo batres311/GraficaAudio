@@ -12,8 +12,11 @@ import scipy.fftpack as fourier #libreria para pasar al dominio de la frecuencia
 WAVEFORM_path_export = 'waveform'
 SPECTROGRAM_path_export='spectogram'
 GREYSPECTROGRAM_path_export='grey spectrogram'
+MELSPECTROGRAM_path_export='mel spectrogram'
 CHROMAGRAM_path_export='chromagram'
 MFCC_path_export='mfcc'
+DELTA_MFCC_path_export='delta mfccs'
+DELTA2_MFCC_path_export='delta2 mfccs'
 FvsA_path_export='FrequencyAmplitude'
 AMPLITUDEENV_path_export='amplitude envelope'
 RMSE_path_export='root mean square energy'
@@ -28,6 +31,7 @@ def LoadAudio_Turn2Decibels(clip):
     D = librosa.stft(y) 
     # STFT of y 
     S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max) 
+    #, ref=np.max
 
     return y,S_db,sr
 
@@ -151,9 +155,11 @@ plt.close()
 
 """Spectrogram"""
 # SPECTROGRAM representation - object-oriented interface 
+plt.figure(figsize=(25, 10))
 fig, ax = plt.subplots() 
-img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear', ax=ax) 
-img = librosa.display.specshow(S_db, x_axis='time', y_axis='log', ax=ax) 
+img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear') 
+img = librosa.display.specshow(S_db, x_axis='time', y_axis='log') 
+plt.colorbar(format="%+2.f")
 ax.set(title='SPECTROGRAM') 
 guardarimagen(SPECTROGRAM_path_export,'Spectrogram',fig)
 plt.close()
@@ -161,17 +167,35 @@ plt.close()
 """Grey Spectrogram"""
 # SPECTROGRAM representation - object-oriented interface 
 fig, ax = plt.subplots() 
-img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear', ax=ax) 
-img = librosa.display.specshow(S_db, x_axis='time', y_axis='log', ax=ax, cmap='gray_r') 
+img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear') 
+img = librosa.display.specshow(S_db, x_axis='time', y_axis='log', cmap='gray_r') 
+plt.colorbar(format="%+2.f")
 ax.set(title='GREY SPECTROGRAM') 
 guardarimagen(GREYSPECTROGRAM_path_export,'Grey Spectrogram',fig)
+plt.close()
+
+"""Mel Spectrogram"""
+#Extracting Mel Spectrogram
+mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=2048, hop_length=512, n_mels=90)
+log_mel_spectrogram = librosa.power_to_db(mel_spectrogram)
+
+plt.figure(figsize=(25, 10))
+fig, ax = plt.subplots() 
+img=librosa.display.specshow(log_mel_spectrogram, 
+                         x_axis="time",
+                         y_axis="mel", 
+                         sr=sr)
+plt.colorbar(format="%+2.f")
+ax.set(title='SPECTROGRAM') 
+guardarimagen(MELSPECTROGRAM_path_export,'Spectrogram',fig)
 plt.close()
 
 """Chromogram"""
 #CHROMAGRAM representation - object-oriented interface 
 CHROMAGRAM = librosa.feature.chroma_cqt(y=y, sr=sr) 
 fig, ax = plt.subplots() 
-img = librosa.display.specshow(CHROMAGRAM, y_axis='chroma', x_axis='time', ax=ax) 
+img = librosa.display.specshow(CHROMAGRAM, y_axis='chroma', x_axis='time') 
+plt.colorbar(format="%+2.f")
 ax.set(title='CHROMAGRAM') 
 guardarimagen(CHROMAGRAM_path_export,'Chromogram',fig)
 plt.close()
@@ -181,8 +205,31 @@ plt.close()
 mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13, n_fft=1200) 
 fig, ax = plt.subplots() 
 img = librosa.display.specshow(mfccs, x_axis='time') 
+plt.colorbar(format="%+2.f")
 ax.set(title='Mel-frequency cepstral coefficients (MFCCs)') 
 guardarimagen(MFCC_path_export,'MFCCs',fig)
+plt.close()
+
+"""Delta MFCCs"""
+delta_mfccs = librosa.feature.delta(mfccs)
+
+plt.figure(figsize=(25, 10))
+fig, ax = plt.subplots() 
+img = librosa.display.specshow(delta_mfccs, x_axis='time',sr=sr) 
+plt.colorbar(format="%+2.f")
+ax.set(title='Delta Mel-frequency cepstral coefficients (MFCCs)') 
+guardarimagen(DELTA_MFCC_path_export,'MFCCs',fig)
+plt.close()
+
+"""Delta2 MFCCs"""
+delta2_mfccs = librosa.feature.delta(mfccs, order=2)
+
+plt.figure(figsize=(25, 10))
+fig, ax = plt.subplots() 
+img = librosa.display.specshow(delta2_mfccs, x_axis='time',sr=sr) 
+plt.colorbar(format="%+2.f")
+ax.set(title='Delta2 Mel-frequency cepstral coefficients (MFCCs)') 
+guardarimagen(DELTA2_MFCC_path_export,'MFCCs',fig)
 plt.close()
 
 """Band Energy Ratio"""
