@@ -24,6 +24,10 @@ ZCR_path_export='zero croosing rate'
 BER_path_export='band energy ratio'
 SpecCent_path_export='spectral centroid'
 Bandwidth_path_export='bandwidth'
+SpecContrast_path_export='spectral contrast'
+SpecRollOff_path_export='spectral rolloff'
+PolyFeatures_path_export='poly features'
+Tonnetz_path_export='tonnetz'
 clip = (r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
 
 def LoadAudio_Turn2Decibels(clip):
@@ -276,4 +280,103 @@ fig, ax = plt.subplots()
 plt.plot(t, ban_y, color='b')
 ax.set(title="Bandwidth")
 guardarimagen(Bandwidth_path_export,'Bandwidth',fig)
+plt.close()
+
+"""Spectral Contrast"""
+S = np.abs(librosa.stft(y))
+contrast = librosa.feature.spectral_contrast(S=S, sr=sr)
+
+fig, ax = plt.subplots(nrows=2, sharex=True)
+img1 = librosa.display.specshow(librosa.amplitude_to_db(S,
+                                                 ref=np.max),
+                         y_axis='log', x_axis='time', ax=ax[0])
+fig.colorbar(img1, ax=[ax[0]], format='%+2.0f dB')
+ax[0].set(title='Power spectrogram')
+ax[0].label_outer()
+img2 = librosa.display.specshow(contrast, x_axis='time', ax=ax[1])
+fig.colorbar(img2, ax=[ax[1]])
+ax[1].set(ylabel='Frequency bands', title='Spectral contrast')
+guardarimagen(SpecContrast_path_export,'Spectral Contrast',fig)
+plt.close()
+
+""" Spectral Flatness"""
+
+#From time-series input
+flatness = librosa.feature.spectral_flatness(y=y)
+flatness
+
+#From spectrogram input
+S, phase = librosa.magphase(librosa.stft(y))
+librosa.feature.spectral_flatness(S=S)
+
+#From power spectrogram input
+S_power = S ** 2
+librosa.feature.spectral_flatness(S=S_power, power=1.0)
+
+"""Spectral RollOff"""
+# Approximate maximum frequencies with roll_percent=0.85 (default)
+librosa.feature.spectral_rolloff(y=y, sr=sr)
+
+# Approximate maximum frequencies with roll_percent=0.99
+rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr, roll_percent=0.99)
+rolloff
+
+# Approximate minimum frequencies with roll_percent=0.01
+rolloff_min = librosa.feature.spectral_rolloff(y=y, sr=sr, roll_percent=0.01)
+rolloff_min
+
+fig, ax = plt.subplots()
+librosa.display.specshow(S_db, y_axis='log', x_axis='time', ax=ax)
+ax.plot(librosa.times_like(rolloff), rolloff[0], label='Roll-off frequency (0.99)')
+ax.plot(librosa.times_like(rolloff), rolloff_min[0], color='w',
+        label='Roll-off frequency (0.01)')
+ax.legend(loc='lower right')
+ax.set(title='log Power spectrogram')
+
+guardarimagen(SpecRollOff_path_export,'Spectral Rolloff',fig)
+plt.close()
+
+"""Poly Features"""
+p0 = librosa.feature.poly_features(S=S, order=0)
+p1 = librosa.feature.poly_features(S=S, order=1)
+p2 = librosa.feature.poly_features(S=S, order=2)
+
+fig, ax = plt.subplots(nrows=4, sharex=True, figsize=(8, 8))
+times = librosa.times_like(p0)
+ax[0].plot(times, p0[0], label='order=0', alpha=0.8)
+ax[0].plot(times, p1[1], label='order=1', alpha=0.8)
+ax[0].plot(times, p2[2], label='order=2', alpha=0.8)
+ax[0].legend()
+ax[0].label_outer()
+ax[0].set(ylabel='Constant term ')
+ax[1].plot(times, p1[0], label='order=1', alpha=0.8)
+ax[1].plot(times, p2[1], label='order=2', alpha=0.8)
+ax[1].set(ylabel='Linear term')
+ax[1].label_outer()
+ax[1].legend()
+ax[2].plot(times, p2[0], label='order=2', alpha=0.8)
+ax[2].set(ylabel='Quadratic term')
+ax[2].legend()
+librosa.display.specshow(librosa.amplitude_to_db(S, ref=np.max),
+                         y_axis='log', x_axis='time', ax=ax[3])
+guardarimagen(PolyFeatures_path_export,'Poly features',fig)
+plt.close()
+
+"""Tonnetz"""
+y = librosa.effects.harmonic(y)
+tonnetz = librosa.feature.tonnetz(y=y, sr=sr)
+tonnetz
+
+fig, ax = plt.subplots(nrows=2, sharex=True)
+img1 = librosa.display.specshow(tonnetz,
+                                y_axis='tonnetz', x_axis='time', ax=ax[0])
+ax[0].set(title='Tonal Centroids (Tonnetz)')
+ax[0].label_outer()
+img2 = librosa.display.specshow(librosa.feature.chroma_cqt(y=y, sr=sr),
+                                y_axis='chroma', x_axis='time', ax=ax[1])
+ax[1].set(title='Chroma')
+fig.colorbar(img1, ax=[ax[0]])
+fig.colorbar(img2, ax=[ax[1]])
+
+guardarimagen(Tonnetz_path_export,'Tonnetz',fig)
 plt.close()
