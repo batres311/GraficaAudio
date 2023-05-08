@@ -8,6 +8,7 @@ import wave  #Permite leer y escribir archivos wav
 import winsound #Permite acceder a la maquinaria básica de reproducción de sonidos proporcionada por la plataformas Windows.
 import scipy.io.wavfile as waves #libreria importante para los datos del audio
 import scipy.fftpack as fourier #libreria para pasar al dominio de la frecuencia de forma sencilla
+from datetime import datetime
 
 WAVEFORM_path_export = 'waveform'
 SPECTROGRAM_path_export='spectogram'
@@ -28,7 +29,8 @@ SpecContrast_path_export='spectral contrast'
 SpecRollOff_path_export='spectral rolloff'
 PolyFeatures_path_export='poly features'
 Tonnetz_path_export='tonnetz'
-clip = (r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
+#clip = (r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
+
 
 def LoadAudio_Turn2Decibels(clip):
     y, sr = librosa.load(clip) 
@@ -41,7 +43,9 @@ def LoadAudio_Turn2Decibels(clip):
 
 def guardarimagen(path_export,NombreImag,fig):
     audio_filename = os.path.basename(os.path.normpath(clip)) 
-    image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + NombreImag+".png" 
+    FechaHora=datetime.now()
+    FechaHora=FechaHora.replace(microsecond=0)
+    image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + NombreImag+" "+str(FechaHora).replace(":", "-", 2) +".png" 
     if not os.path.exists(path_export): 
         os.makedirs(path_export) 
     fig.savefig(os.path.join(path_export,image_filename_to_save)) 
@@ -78,6 +82,35 @@ def band_energy_ratio(spectrogram, split_frequency, sample_rate):
         band_energy_ratio.append(band_energy_ratio_current_frame)
     
     return np.array(band_energy_ratio)
+duracion=5 #Periodo de grabacion de 5 segundos
+archivo="PruebaAudio1.wav" #Se define el nombre del archivo donde se guardara la grabación
+
+audio=pyaudio.PyAudio() #Iniciamos pyaudio
+#Abrimos corriente o flujo
+stream=audio.open(format=pyaudio.paInt16,channels=2,
+					rate=44100,input=True, #rate es la frecuencia de muestreo 44.1KHz
+					frames_per_buffer=1024)
+					
+print("Grabando ...") #Mensaje de que se inicio a grabar
+frames=[] #Aqui guardamos la grabacion
+for i in range(0,int(44100/1024*duracion)):
+	data=stream.read(1024)
+	frames.append(data)
+	
+print("La grabacion ha terminado ") #Mensaje de fin de grabación
+stream.stop_stream()    #Detener grabacion
+stream.close()          #Cerramos stream
+audio.terminate()
+
+waveFile=wave.open(archivo,'wb') #Creamos nuestro archivo
+waveFile.setnchannels(2) #Se designan los canales
+waveFile.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
+waveFile.setframerate(44100) #Pasamos la frecuencia de muestreo
+waveFile.writeframes(b''.join(frames))
+waveFile.close() #Cerramos el archivo
+
+clip=(r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
+winsound.PlaySound(clip,winsound.SND_FILENAME)
 
 y,S_db,sr=LoadAudio_Turn2Decibels(clip)
 
@@ -191,7 +224,7 @@ img=librosa.display.specshow(log_mel_spectrogram,
                          sr=sr)
 plt.colorbar(format="%+2.f")
 ax.set(title='SPECTROGRAM') 
-guardarimagen(MELSPECTROGRAM_path_export,'Spectrogram',fig)
+guardarimagen(MELSPECTROGRAM_path_export,'MelSpectrogram',fig)
 plt.close()
 
 """Chromogram"""
@@ -222,7 +255,7 @@ fig, ax = plt.subplots()
 img = librosa.display.specshow(delta_mfccs, x_axis='time',sr=sr) 
 plt.colorbar(format="%+2.f")
 ax.set(title='Delta Mel-frequency cepstral coefficients (MFCCs)') 
-guardarimagen(DELTA_MFCC_path_export,'MFCCs',fig)
+guardarimagen(DELTA_MFCC_path_export,'DeltaMFCCs',fig)
 plt.close()
 
 """Delta2 MFCCs"""
@@ -233,7 +266,7 @@ fig, ax = plt.subplots()
 img = librosa.display.specshow(delta2_mfccs, x_axis='time',sr=sr) 
 plt.colorbar(format="%+2.f")
 ax.set(title='Delta2 Mel-frequency cepstral coefficients (MFCCs)') 
-guardarimagen(DELTA2_MFCC_path_export,'MFCCs',fig)
+guardarimagen(DELTA2_MFCC_path_export,'Delta2MFCCs',fig)
 plt.close()
 
 """Band Energy Ratio"""
