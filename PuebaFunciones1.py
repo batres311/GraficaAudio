@@ -10,25 +10,45 @@ import scipy.io.wavfile as waves #libreria importante para los datos del audio
 import scipy.fftpack as fourier #libreria para pasar al dominio de la frecuencia de forma sencilla
 from datetime import datetime
 
-WAVEFORM_path_export = 'waveform'
-SPECTROGRAM_path_export='spectogram'
-GREYSPECTROGRAM_path_export='grey spectrogram'
-MELSPECTROGRAM_path_export='mel spectrogram'
-CHROMAGRAM_path_export='chromagram'
-MFCC_path_export='mfcc'
-DELTA_MFCC_path_export='delta mfccs'
-DELTA2_MFCC_path_export='delta2 mfccs'
-FvsA_path_export='FrequencyAmplitude'
-AMPLITUDEENV_path_export='amplitude envelope'
-RMSE_path_export='root mean square energy'
-ZCR_path_export='zero croosing rate'
-BER_path_export='band energy ratio'
-SpecCent_path_export='spectral centroid'
-Bandwidth_path_export='bandwidth'
-SpecContrast_path_export='spectral contrast'
-SpecRollOff_path_export='spectral rolloff'
-PolyFeatures_path_export='poly features'
-Tonnetz_path_export='tonnetz'
+
+WAVEFORM_path_export1 = 'waveform/OK'
+WAVEFORM_path_export2 = 'waveform/NOK'
+SPECTROGRAM_path_export1='spectogram/OK'
+SPECTROGRAM_path_export2='spectogram/NOK'
+GREYSPECTROGRAM_path_export1='grey spectrogram/OK'
+GREYSPECTROGRAM_path_export2='grey spectrogram/NOK'
+MELSPECTROGRAM_path_export1='mel spectrogram/OK'
+MELSPECTROGRAM_path_export2='mel spectrogram/NOK'
+CHROMAGRAM_path_export1='chromagram/OK'
+CHROMAGRAM_path_export2='chromagram/NOK'
+MFCC_path_export1='mfcc/OK'
+MFCC_path_export2='mfcc/NOK'
+DELTA_MFCC_path_export1='delta mfccs/OK'
+DELTA_MFCC_path_export2='delta mfccs/NOK'
+DELTA2_MFCC_path_export1='delta2 mfccs/OK'
+DELTA2_MFCC_path_export2='delta2 mfccs/NOK'
+FvsA_path_export1='FrequencyAmplitude/OK'
+FvsA_path_export2='FrequencyAmplitude/NOK'
+AMPLITUDEENV_path_export1='amplitude envelope/OK'
+AMPLITUDEENV_path_export2='amplitude envelope/NOK'
+RMSE_path_export1='root mean square energy/OK'
+RMSE_path_export2='root mean square energy/NOK'
+ZCR_path_export1='zero croosing rate/OK'
+ZCR_path_export2='zero croosing rate/NOK'
+BER_path_export1='band energy ratio/OK'
+BER_path_export2='band energy ratio/NOK'
+SpecCent_path_export1='spectral centroid/OK'
+SpecCent_path_export2='spectral centroid/NOK'
+Bandwidth_path_export1='bandwidth/OK'
+Bandwidth_path_export2='bandwidth/NOK'
+SpecContrast_path_export1='spectral contrast/OK'
+SpecContrast_path_export2='spectral contrast/NOK'
+SpecRollOff_path_export1='spectral rolloff/OK'
+SpecRollOff_path_export2='spectral rolloff/NOK'
+PolyFeatures_path_export1='poly features/OK'
+PolyFeatures_path_export2='poly features/NOK'
+Tonnetz_path_export1='tonnetz/OK'
+Tonnetz_path_export2='tonnetz/NOK'
 #clip = (r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
 
 
@@ -41,14 +61,19 @@ def LoadAudio_Turn2Decibels(clip):
 
     return y,S_db,sr
 
-def guardarimagen(path_export,NombreImag,fig):
+def guardarimagen(path_export1,path_export2,res,NombreImag,fig):
     audio_filename = os.path.basename(os.path.normpath(clip)) 
     FechaHora=datetime.now()
     FechaHora=FechaHora.replace(microsecond=0)
     image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + NombreImag+" "+str(FechaHora).replace(":", "-", 2) +".png" 
-    if not os.path.exists(path_export): 
-        os.makedirs(path_export) 
-    fig.savefig(os.path.join(path_export,image_filename_to_save)) 
+    if not os.path.exists(path_export1): 
+        os.makedirs(path_export1, exist_ok=True) 
+    if not os.path.exists(path_export2): 
+        os.makedirs(path_export2, exist_ok=True)
+    if res=='ok':
+        fig.savefig(os.path.join(path_export1,image_filename_to_save))
+    else:
+        fig.savefig(os.path.join(path_export2,image_filename_to_save))
 
 def fancy_amplitude_envelope(signal, frame_size, hop_length):
     """Fancier Python code to calculate the amplitude envelope of a signal with a given frame size."""
@@ -112,6 +137,7 @@ waveFile.close() #Cerramos el archivo
 clip=(r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
 winsound.PlaySound(clip,winsound.SND_FILENAME)
 
+res=input("Ingresa ok si es buena grabacion y nok si es mala: ")
 y,S_db,sr=LoadAudio_Turn2Decibels(clip)
 
 """ Waveform"""
@@ -120,7 +146,7 @@ fig, ax = plt.subplots()
 img = librosa.display.waveshow(y, sr=sr, axis='time') 
 ax.set(title='WAVEFORM') 
 #The first strips off any trailing slashes, the second gives you the last part of the path. 
-guardarimagen(WAVEFORM_path_export,'waveform',fig)
+guardarimagen(WAVEFORM_path_export1,WAVEFORM_path_export2,res,'waveform',fig)
 plt.close()
 
 """Amplitude envelope"""
@@ -140,7 +166,7 @@ img=librosa.display.waveshow(y, alpha=0.5)
 plt.plot(t, ae_y, color="r")
 #plt.ylim((-1, 1))
 ax.set(title="Amplitude envelope")
-guardarimagen(AMPLITUDEENV_path_export,'AmplitudEnvelope',fig)
+guardarimagen(AMPLITUDEENV_path_export1,AMPLITUDEENV_path_export2,res,'AmplitudEnvelope',fig)
 plt.close()
 
 """Root-mean-squared energy with Librosa"""
@@ -155,7 +181,7 @@ librosa.display.waveshow(y, alpha=0.5)
 plt.plot(t, rms_y, color="r")
 #plt.ylim((-1, 1))
 ax.set(title="RMS energy")
-guardarimagen(RMSE_path_export,'RMSE',fig)
+guardarimagen(RMSE_path_export1,RMSE_path_export2,res,'RMSE',fig)
 plt.close()
 
 """ Zero crossing rate"""
@@ -170,7 +196,7 @@ plt.plot(t, zcr_y, color="r")
 plt.ylim(0, 1)
 #plt.show()
 ax.set(title="Zero Croosing Rate")
-guardarimagen(ZCR_path_export,'ZCR',fig)
+guardarimagen(ZCR_path_export1,ZCR_path_export2,res,'ZCR',fig)
 plt.close()
 
 """Frequency vs Amplitude"""
@@ -187,7 +213,7 @@ plt.xlabel('Frecuencia (Hz)', fontsize='14')
 plt.ylabel('Amplitud FFT', fontsize='14')
 #plt.show()
 bx.set(title="Frequency vs Amplitude")
-guardarimagen(FvsA_path_export,'FvsA',fig)
+guardarimagen(FvsA_path_export1,FvsA_path_export2,res,'FvsA',fig)
 plt.close()
 
 """Spectrogram"""
@@ -198,7 +224,7 @@ img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear')
 img = librosa.display.specshow(S_db, x_axis='time', y_axis='log') 
 plt.colorbar(format="%+2.f")
 ax.set(title='SPECTROGRAM') 
-guardarimagen(SPECTROGRAM_path_export,'Spectrogram',fig)
+guardarimagen(SPECTROGRAM_path_export1,SPECTROGRAM_path_export2,res,'Spectrogram',fig)
 plt.close()
 
 """Grey Spectrogram"""
@@ -208,7 +234,7 @@ img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear')
 img = librosa.display.specshow(S_db, x_axis='time', y_axis='log', cmap='gray_r') 
 plt.colorbar(format="%+2.f")
 ax.set(title='GREY SPECTROGRAM') 
-guardarimagen(GREYSPECTROGRAM_path_export,'Grey Spectrogram',fig)
+guardarimagen(GREYSPECTROGRAM_path_export1,GREYSPECTROGRAM_path_export2,res,'Grey Spectrogram',fig)
 plt.close()
 
 """Mel Spectrogram"""
@@ -224,7 +250,7 @@ img=librosa.display.specshow(log_mel_spectrogram,
                          sr=sr)
 plt.colorbar(format="%+2.f")
 ax.set(title='SPECTROGRAM') 
-guardarimagen(MELSPECTROGRAM_path_export,'MelSpectrogram',fig)
+guardarimagen(MELSPECTROGRAM_path_export1,MELSPECTROGRAM_path_export2,res,'MelSpectrogram',fig)
 plt.close()
 
 """Chromogram"""
@@ -234,7 +260,7 @@ fig, ax = plt.subplots()
 img = librosa.display.specshow(CHROMAGRAM, y_axis='chroma', x_axis='time') 
 plt.colorbar(format="%+2.f")
 ax.set(title='CHROMAGRAM') 
-guardarimagen(CHROMAGRAM_path_export,'Chromogram',fig)
+guardarimagen(CHROMAGRAM_path_export1,CHROMAGRAM_path_export2,res,'Chromogram',fig)
 plt.close()
 
 """MFCCs"""
@@ -244,7 +270,7 @@ fig, ax = plt.subplots()
 img = librosa.display.specshow(mfccs, x_axis='time') 
 plt.colorbar(format="%+2.f")
 ax.set(title='Mel-frequency cepstral coefficients (MFCCs)') 
-guardarimagen(MFCC_path_export,'MFCCs',fig)
+guardarimagen(MFCC_path_export1,MFCC_path_export2,res,'MFCCs',fig)
 plt.close()
 
 """Delta MFCCs"""
@@ -255,7 +281,7 @@ fig, ax = plt.subplots()
 img = librosa.display.specshow(delta_mfccs, x_axis='time',sr=sr) 
 plt.colorbar(format="%+2.f")
 ax.set(title='Delta Mel-frequency cepstral coefficients (MFCCs)') 
-guardarimagen(DELTA_MFCC_path_export,'DeltaMFCCs',fig)
+guardarimagen(DELTA_MFCC_path_export1,DELTA_MFCC_path_export2,res,'DeltaMFCCs',fig)
 plt.close()
 
 """Delta2 MFCCs"""
@@ -266,7 +292,7 @@ fig, ax = plt.subplots()
 img = librosa.display.specshow(delta2_mfccs, x_axis='time',sr=sr) 
 plt.colorbar(format="%+2.f")
 ax.set(title='Delta2 Mel-frequency cepstral coefficients (MFCCs)') 
-guardarimagen(DELTA2_MFCC_path_export,'Delta2MFCCs',fig)
+guardarimagen(DELTA2_MFCC_path_export1,DELTA2_MFCC_path_export2,res,'Delta2MFCCs',fig)
 plt.close()
 
 """Band Energy Ratio"""
@@ -287,7 +313,7 @@ fig, ax = plt.subplots()
 plt.plot(t, ber_y, color="b")
 #plt.ylim((0, 200))
 ax.set(title="Band Energy Ratio")
-guardarimagen(BER_path_export,'Band Energy Ratio',fig)
+guardarimagen(BER_path_export1,BER_path_export2,res,'Band Energy Ratio',fig)
 plt.close()
 
 """Spectral Centroid"""
@@ -300,7 +326,7 @@ plt.figure(figsize=(25,10))
 fig, ax = plt.subplots()
 plt.plot(t, sc_y, color='b')
 ax.set(title="Spectral Centroid")
-guardarimagen(SpecCent_path_export,'Spectral Centroid',fig)
+guardarimagen(SpecCent_path_export1,SpecCent_path_export2,res,'Spectral Centroid',fig)
 plt.close()
 
 """Bandwidth"""
@@ -312,7 +338,7 @@ plt.figure(figsize=(25,10))
 fig, ax = plt.subplots()
 plt.plot(t, ban_y, color='b')
 ax.set(title="Bandwidth")
-guardarimagen(Bandwidth_path_export,'Bandwidth',fig)
+guardarimagen(Bandwidth_path_export1,Bandwidth_path_export2,res,'Bandwidth',fig)
 plt.close()
 
 """Spectral Contrast"""
@@ -329,7 +355,7 @@ ax[0].label_outer()
 img2 = librosa.display.specshow(contrast, x_axis='time', ax=ax[1])
 fig.colorbar(img2, ax=[ax[1]])
 ax[1].set(ylabel='Frequency bands', title='Spectral contrast')
-guardarimagen(SpecContrast_path_export,'Spectral Contrast',fig)
+guardarimagen(SpecContrast_path_export1,SpecContrast_path_export2,res,'Spectral Contrast',fig)
 plt.close()
 
 """ Spectral Flatness"""
@@ -366,7 +392,7 @@ ax.plot(librosa.times_like(rolloff), rolloff_min[0], color='w',
 ax.legend(loc='lower right')
 ax.set(title='log Power spectrogram')
 
-guardarimagen(SpecRollOff_path_export,'Spectral Rolloff',fig)
+guardarimagen(SpecRollOff_path_export1,SpecRollOff_path_export2,res,'Spectral Rolloff',fig)
 plt.close()
 
 """Poly Features"""
@@ -392,7 +418,7 @@ ax[2].set(ylabel='Quadratic term')
 ax[2].legend()
 librosa.display.specshow(librosa.amplitude_to_db(S, ref=np.max),
                          y_axis='log', x_axis='time', ax=ax[3])
-guardarimagen(PolyFeatures_path_export,'Poly features',fig)
+guardarimagen(PolyFeatures_path_export1,PolyFeatures_path_export2,res,'Poly features',fig)
 plt.close()
 
 """Tonnetz"""
@@ -411,5 +437,5 @@ ax[1].set(title='Chroma')
 fig.colorbar(img1, ax=[ax[0]])
 fig.colorbar(img2, ax=[ax[1]])
 
-guardarimagen(Tonnetz_path_export,'Tonnetz',fig)
+guardarimagen(Tonnetz_path_export1,Tonnetz_path_export2,res,'Tonnetz',fig)
 plt.close()
