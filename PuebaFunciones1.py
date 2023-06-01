@@ -1,4 +1,5 @@
 import librosa
+import librosa.display
 import math
 import os
 import numpy as np
@@ -7,7 +8,6 @@ import pyaudio #Libreria que ayuda para obtener el audio y darle formato
 import wave  #Permite leer y escribir archivos wav
 import winsound #Permite acceder a la maquinaria básica de reproducción de sonidos proporcionada por la plataformas Windows.
 import scipy.io.wavfile as waves #libreria importante para los datos del audio
-import scipy.fftpack as fourier #libreria para pasar al dominio de la frecuencia de forma sencilla
 from datetime import datetime
 
 
@@ -107,6 +107,7 @@ def band_energy_ratio(spectrogram, split_frequency, sample_rate):
         band_energy_ratio.append(band_energy_ratio_current_frame)
     
     return np.array(band_energy_ratio)
+
 duracion=5 #Periodo de grabacion de 5 segundos
 archivo="PruebaAudio1.wav" #Se define el nombre del archivo donde se guardara la grabación
 
@@ -143,7 +144,7 @@ y,S_db,sr=LoadAudio_Turn2Decibels(clip)
 """ Waveform"""
 # Simple WAVEFORM to check clip trimming accuracy 
 fig, ax = plt.subplots() 
-img = librosa.display.waveshow(y, sr=sr, axis='time') 
+img = librosa.display.waveshow(y, sr=sr) 
 ax.set(title='WAVEFORM') 
 #The first strips off any trailing slashes, the second gives you the last part of the path. 
 guardarimagen(WAVEFORM_path_export1,WAVEFORM_path_export2,res,'waveform',fig)
@@ -201,16 +202,18 @@ plt.close()
 
 """Frequency vs Amplitude"""
 #Frequency vs amplitude graph
-Audio_m=y[:] #Renombramos este arreglo como Audio_m
-L=len(Audio_m)
-gk=fourier.fft(Audio_m) #Transformada de fourier sobre el vector con los valores del audio
-M_gk=abs(gk)            #Calculo de su valor absoluto de los nuevos valores tras la transformada
-M_gk=M_gk[0:L//2]       #Funcion par asi que basta con analizar la mitad de los valores
-F=(sr/L)*np.arange(0,L//2) #Se declara un arreglo hasta L medios
+fft=np.fft.fft(y)
+
+magnitude=np.abs(fft)
+frequency=np.linspace(0,sr,len(magnitude))
+
+left_frequency=frequency[:int(len(frequency)/2)]
+left_magnitude=magnitude[:int(len(frequency)/2)]
+
 fig, bx=plt.subplots()
-plt.plot(F,M_gk)
-plt.xlabel('Frecuencia (Hz)', fontsize='14')
-plt.ylabel('Amplitud FFT', fontsize='14')
+plt.plot(left_frequency,left_magnitude)
+plt.xlabel("Frequency")
+plt.ylabel("Magnitude")
 #plt.show()
 bx.set(title="Frequency vs Amplitude")
 guardarimagen(FvsA_path_export1,FvsA_path_export2,res,'FvsA',fig)
