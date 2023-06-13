@@ -1,14 +1,17 @@
 import librosa
-import librosa.display
+#import librosa.display
 import math
 import os
 import numpy as np
 import matplotlib.pyplot as plt
 import pyaudio #Libreria que ayuda para obtener el audio y darle formato
 import wave  #Permite leer y escribir archivos wav
-import winsound #Permite acceder a la maquinaria básica de reproducción de sonidos proporcionada por la plataformas Windows.
+#import winsound #Permite acceder a la maquinaria básica de reproducción de sonidos proporcionada por la plataformas Windows.
 import scipy.io.wavfile as waves #libreria importante para los datos del audio
 from datetime import datetime
+from ctypes import *
+from contextlib import contextmanager
+
 
 
 WAVEFORM_path_export1 = 'waveform/OK'
@@ -111,7 +114,22 @@ def band_energy_ratio(spectrogram, split_frequency, sample_rate):
 duracion=5 #Periodo de grabacion de 5 segundos
 archivo="PruebaAudio1.wav" #Se define el nombre del archivo donde se guardara la grabación
 
-audio=pyaudio.PyAudio() #Iniciamos pyaudio
+ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
+
+def py_error_handler(filename, line, function, err, fmt):
+    pass
+
+c_error_handler = ERROR_HANDLER_FUNC(py_error_handler)
+
+@contextmanager
+def noalsaerr():
+    asound = cdll.LoadLibrary('libasound.so')
+    asound.snd_lib_error_set_handler(c_error_handler)
+    yield
+    asound.snd_lib_error_set_handler(None)
+
+with noalsaerr():
+    audio=pyaudio.PyAudio() #Iniciamos pyaudio
 #Abrimos corriente o flujo
 stream=audio.open(format=pyaudio.paInt16,channels=2,
 					rate=44100,input=True, #rate es la frecuencia de muestreo 44.1KHz
@@ -135,8 +153,9 @@ waveFile.setframerate(44100) #Pasamos la frecuencia de muestreo
 waveFile.writeframes(b''.join(frames))
 waveFile.close() #Cerramos el archivo
 
-clip=(r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
-winsound.PlaySound(clip,winsound.SND_FILENAME)
+#clip=(r'/home/pi/python-projects/AudioLibrosaTest1/GraficaAudio/PruebaAudio1.wav')
+#winsound.PlaySound(clip,winsound.SND_FILENAME)
+clip=('PruebaAudio1.wav')
 
 res=input("Ingresa ok si es buena grabacion y nok si es mala: ")
 y,S_db,sr=LoadAudio_Turn2Decibels(clip)

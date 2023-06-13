@@ -4,176 +4,112 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pyaudio #Libreria que ayuda para obtener el audio y darle formato
 import wave  #Permite leer y escribir archivos wav
-import winsound #Permite acceder a la maquinaria básica de reproducción de sonidos proporcionada por la plataformas Windows.
+#import winsound #Permite acceder a la maquinaria básica de reproducción de sonidos proporcionada por la plataformas Windows.
 import scipy.io.wavfile as waves #libreria importante para los datos del audio
 import scipy.fftpack as fourier #libreria para pasar al dominio de la frecuencia de forma sencilla
+from ctypes import *
+from contextlib import contextmanager
+from datetime import datetime
 
-WAVEFORM_path_export = 'waveform'
-SPECTROGRAM_path_export='spectogram'
-CHROMAGRAM_path_export='chromagram'
-MFCC_path_export='mfcc'
-AMPLITUDEENV_path_export='amplitude envelope'
-RMSE_path_export='root mean square energy'
-ZCR_path_export='zero croosing rate'
-clip = (r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
+MFCC_path_export1='mfcc/OK'
+MFCC_path_export2='mfcc/NOK'
 
-
-y, sr = librosa.load(clip) 
-D = librosa.stft(y) 
-# STFT of y 
-S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max) 
-
-# Simple WAVEFORM to check clip trimming accuracy 
-fig, ax = plt.subplots() 
-img = librosa.display.waveshow(y, sr=sr, axis='time') 
-ax.set(title='WAVEFORM') 
-#The first strips off any trailing slashes, the second gives you the last part of the path. 
-audio_filename = os.path.basename(os.path.normpath(clip)) 
-image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + "WAVEFORM.png" 
-if not os.path.exists(WAVEFORM_path_export): 
-    os.makedirs(WAVEFORM_path_export) 
-fig.savefig(os.path.join(WAVEFORM_path_export,image_filename_to_save)) 
-plt.close()
-
-#Calculatin amplitude envelope
 FRAME_SIZE = 1024
 HOP_LENGTH = 512
 
-def amplitude_envelope(signal, frame_size, hop_length):
-    """Calculate the amplitude envelope of a signal with a given frame size nad hop length."""
-    amplitude_envelope = []
-    
-    # calculate amplitude envelope for each frame
-    for i in range(0, len(signal), hop_length): 
-        amplitude_envelope_current_frame = max(signal[i:i+frame_size]) 
-        amplitude_envelope.append(amplitude_envelope_current_frame)
-    
-    return np.array(amplitude_envelope)   
+duracion=4 #Periodo de grabacion de 5 segundos
+archivo="PruebaAudio1.wav" #Se define el nombre del archivo donde se guardara la grabación
 
-def fancy_amplitude_envelope(signal, frame_size, hop_length):
-    """Fancier Python code to calculate the amplitude envelope of a signal with a given frame size."""
-    return np.array([max(signal[i:i+frame_size]) for i in range(0, len(signal), hop_length)])
+ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
 
-# number of frames in amplitude envelope
-ae_y = amplitude_envelope(y, FRAME_SIZE, HOP_LENGTH)
-len(ae_y)
+def py_error_handler(filename, line, function, err, fmt):
+    pass
 
-#Visualizing amplitud envelope
-frames = range(len(ae_y))
-t = librosa.frames_to_time(frames, hop_length=HOP_LENGTH)
+c_error_handler = ERROR_HANDLER_FUNC(py_error_handler)
 
-# amplitude envelope is graphed in red
+@contextmanager
+def noalsaerr():
+    asound = cdll.LoadLibrary('libasound.so')
+    asound.snd_lib_error_set_handler(c_error_handler)
+    yield
+    asound.snd_lib_error_set_handler(None)
 
-plt.figure(figsize=(15, 17))
+with noalsaerr():
+    audio=pyaudio.PyAudio() #Iniciamos pyaudio
+#Abrimos corriente o flujo
+stream=audio.open(format=pyaudio.paInt16,channels=2,
+					rate=44100,input=True, #rate es la frecuencia de muestreo 44.1KHz
+					frames_per_buffer=1024)
+					
+print("Grabando ...") #Mensaje de que se inicio a grabar
+frames=[] #Aqui guardamos la grabacion
+for i in range(0,int(44100/1024*duracion)):
+	data=stream.read(1024)
+	frames.append(data)
+	
+print("La grabacion ha terminado ") #Mensaje de fin de grabación
+stream.stop_stream()    #Detener grabacion
+stream.close()          #Cerramos stream
+audio.terminate()
 
-fig, ax = plt.subplots()
-img=librosa.display.waveshow(y, alpha=0.5)
-plt.plot(t, ae_y, color="r")
-#plt.ylim((-1, 1))
-ax.set(title="Amplitude envelope")
-#The first strips off any trailing slashes, the second gives you the last part of the path. 
-audio_filename = os.path.basename(os.path.normpath(clip)) 
-image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + "AmplitudeEnvelope.png" 
-if not os.path.exists(AMPLITUDEENV_path_export): 
-    os.makedirs(AMPLITUDEENV_path_export) 
-fig.savefig(os.path.join(AMPLITUDEENV_path_export,image_filename_to_save)) 
-plt.close()
+waveFile=wave.open(archivo,'wb') #Creamos nuestro archivo
+waveFile.setnchannels(2) #Se designan los canales
+waveFile.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
+waveFile.setframerate(44100) #Pasamos la frecuencia de muestreo
+waveFile.writeframes(b''.join(frames))
+waveFile.close() #Cerramos el archivo
 
-#Root-mean-squared energy with Librosa
-rms_y = librosa.feature.rms(y=y, frame_length=FRAME_SIZE, hop_length=HOP_LENGTH)[0]
+clip = ('PruebaAudio1.wav')
 
-#Visualise RMSE + waveform
-frames = range(len(rms_y))
-t = librosa.frames_to_time(frames, hop_length=HOP_LENGTH)
+def LoadAudio_Turn2Decibels(clip):
+    y, sr = librosa.load(clip) 
+    D = librosa.stft(y) 
+    # STFT of y 
+    S_db = librosa.amplitude_to_db(np.abs(D), ref=np.max) 
+    #, ref=np.max
 
-# rms energy is graphed in red
+    return y,S_db,sr
 
-plt.figure(figsize=(15, 17))
-fig, ax = plt.subplots()
-librosa.display.waveshow(y, alpha=0.5)
-plt.plot(t, rms_y, color="r")
-#plt.ylim((-1, 1))
-ax.set(title="RMS energy")
-audio_filename = os.path.basename(os.path.normpath(clip)) 
-image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + "RootMeanSquareEnergy.png" 
-if not os.path.exists(RMSE_path_export): 
-    os.makedirs(RMSE_path_export) 
-fig.savefig(os.path.join(RMSE_path_export,image_filename_to_save)) 
-plt.close()
+def guardarimagen(path_export1,path_export2,res,NombreImag,fig):
+    audio_filename = os.path.basename(os.path.normpath(clip)) 
+    FechaHora=datetime.now()
+    FechaHora=FechaHora.replace(microsecond=0)
+    image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + NombreImag+" "+str(FechaHora).replace(":", "-", 2) +".png" 
+    if not os.path.exists(path_export1): 
+        os.makedirs(path_export1, exist_ok=True) 
+    if not os.path.exists(path_export2): 
+        os.makedirs(path_export2, exist_ok=True)
+    if res=='ok':
+        fig.savefig(os.path.join(path_export1,image_filename_to_save))
+    else:
+        fig.savefig(os.path.join(path_export2,image_filename_to_save))
 
-#Zero-crossing rate with Librosa
-zcr_y = librosa.feature.zero_crossing_rate(y, frame_length=FRAME_SIZE, hop_length=HOP_LENGTH)[0]
-zcr_y.size
 
-#Visualise zero-crossing rate with Librosa
-plt.figure(figsize=(15, 10))
-fig, ax = plt.subplots()
-plt.plot(t, zcr_y, color="r")
-plt.ylim(0, 1)
-#plt.show()
-ax.set(title="Zero Croosing Rate")
-audio_filename = os.path.basename(os.path.normpath(clip)) 
-image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + "ZeroCroosingRate.png" 
-if not os.path.exists(ZCR_path_export): 
-    os.makedirs(ZCR_path_export) 
-fig.savefig(os.path.join(ZCR_path_export,image_filename_to_save)) 
-plt.close()
 
-#Frequency vs amplitude graph
-Audio_m=y[:] #Renombramos este arreglo como Audio_m
-L=len(Audio_m)
-gk=fourier.fft(Audio_m) #Transformada de fourier sobre el vector con los valores del audio
-M_gk=abs(gk)            #Calculo de su valor absoluto de los nuevos valores tras la transformada
-M_gk=M_gk[0:L//2]       #Funcion par asi que basta con analizar la mitad de los valores
-F=(sr/L)*np.arange(0,L//2) #Se declara un arreglo hasta L medios
+res=input("Ingresa ok si es buena grabacion y nok si es mala: ")
+y,S_db,sr=LoadAudio_Turn2Decibels(clip)
 
-fig, bx=plt.subplots()
-plt.plot(F,M_gk)
-plt.xlabel('Frecuencia (Hz)', fontsize='14')
-plt.ylabel('Amplitud FFT', fontsize='14')
-#plt.show()
-bx.set(title="Frequency vs Amplitude")
-#The first strips off any trailing slashes, the second gives you the last part of the path. 
-audio_filename = os.path.basename(os.path.normpath(clip)) 
-image_filename_to_save = str(audio_filename).replace(".flac", "-", 1) + "SPECTROGRAM.png" 
-if not os.path.exists(SPECTROGRAM_path_export): 
-    os.makedirs(SPECTROGRAM_path_export) 
-fig.savefig(os.path.join(SPECTROGRAM_path_export,image_filename_to_save)) 
-plt.close()
-
-# SPECTROGRAM representation - object-oriented interface 
-fig, ax = plt.subplots() 
-img = librosa.display.specshow(S_db, x_axis='time', y_axis='linear', ax=ax) 
-img = librosa.display.specshow(S_db, x_axis='time', y_axis='log', ax=ax, cmap='gray_r') 
-ax.set(title='SPECTROGRAM') 
-#The first strips off any trailing slashes, the second gives you the last part of the path. 
-audio_filename = os.path.basename(os.path.normpath(clip)) 
-image_filename_to_save = str(audio_filename).replace(".flac", "-", 1) + "SPECTROGRAM.png" 
-if not os.path.exists(SPECTROGRAM_path_export): 
-    os.makedirs(SPECTROGRAM_path_export) 
-fig.savefig(os.path.join(SPECTROGRAM_path_export,image_filename_to_save)) 
-plt.close()
-
-#CHROMAGRAM representation - object-oriented interface 
-CHROMAGRAM = librosa.feature.chroma_cqt(y=y, sr=sr) 
-fig, ax = plt.subplots() 
-img = librosa.display.specshow(CHROMAGRAM, y_axis='chroma', x_axis='time', ax=ax) 
-ax.set(title='CHROMAGRAM') 
-audio_filename = os.path.basename(os.path.normpath(clip)) 
-image_filename_to_save = str(audio_filename).replace(".flac", "-", 1) + "CHROMAGRAM.png" 
-if not os.path.exists(CHROMAGRAM_path_export): 
-    os.makedirs(CHROMAGRAM_path_export) 
-fig.savefig(os.path.join(CHROMAGRAM_path_export,image_filename_to_save)) 
-plt.close()
-
+"""MFCCs"""
 #MFCC representation - object-oriented interface 
 mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13, n_fft=1200) 
 fig, ax = plt.subplots() 
 img = librosa.display.specshow(mfccs, x_axis='time') 
+plt.colorbar(format="%+2.f")
 ax.set(title='Mel-frequency cepstral coefficients (MFCCs)') 
-audio_filename = os.path.basename(os.path.normpath(clip)) 
-image_filename_to_save = str(audio_filename).replace(".flac", "-", 1) + "MFCC.png" 
-if not os.path.exists(MFCC_path_export): 
-    os.makedirs(MFCC_path_export) 
-fig.savefig(os.path.join(MFCC_path_export,image_filename_to_save)) 
+guardarimagen(MFCC_path_export1,MFCC_path_export2,res,'MFCCs',fig)
 plt.close()
+
+# Simple WAVEFORM to check clip trimming accuracy 
+"""fig, ax = plt.subplots() 
+img = librosa.display.waveshow(y, sr=sr) 
+ax.set(title='WAVEFORM') """
+#The first strips off any trailing slashes, the second gives you the last part of the path. 
+
+
+"""audio_filename = os.path.basename(os.path.normpath(clip)) 
+image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + "WAVEFORM.png" 
+if not os.path.exists(WAVEFORM_path_export): 
+    os.makedirs(WAVEFORM_path_export) 
+fig.savefig(os.path.join(WAVEFORM_path_export,image_filename_to_save)) 
+plt.close()"""
+
