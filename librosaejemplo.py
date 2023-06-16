@@ -10,15 +10,25 @@ import scipy.fftpack as fourier #libreria para pasar al dominio de la frecuencia
 from ctypes import *
 from contextlib import contextmanager
 from datetime import datetime
+import RPi.GPIO as GPIO
 
 MFCC_path_export1='mfcc/OK'
 MFCC_path_export2='mfcc/NOK'
+VibratePin = 11
+Gpin   = 13
 
 FRAME_SIZE = 1024
 HOP_LENGTH = 512
 
-duracion=4 #Periodo de grabacion de 5 segundos
+duracion=20#Periodo de grabacion de 5 segundos
 archivo="PruebaAudio1.wav" #Se define el nombre del archivo donde se guardara la grabación
+
+def setup():
+	GPIO.setwarnings(False) 
+	GPIO.setmode(GPIO.BOARD)       # Numbers GPIOs by physical location
+	   # Set Green Led Pin mode to output
+	GPIO.setup(Gpin, GPIO.IN, pull_up_down=GPIO.PUD_UP)      # Set Red Led Pin mode to output
+	GPIO.setup(VibratePin, GPIO.IN, pull_up_down=GPIO.PUD_UP) 
 
 ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
 
@@ -37,28 +47,40 @@ def noalsaerr():
 with noalsaerr():
     audio=pyaudio.PyAudio() #Iniciamos pyaudio
 #Abrimos corriente o flujo
-stream=audio.open(format=pyaudio.paInt16,channels=2,
-					rate=44100,input=True, #rate es la frecuencia de muestreo 44.1KHz
-					frames_per_buffer=1024)
-					
-print("Grabando ...") #Mensaje de que se inicio a grabar
-frames=[] #Aqui guardamos la grabacion
-for i in range(0,int(44100/1024*duracion)):
-	data=stream.read(1024)
-	frames.append(data)
-	
-print("La grabacion ha terminado ") #Mensaje de fin de grabación
-stream.stop_stream()    #Detener grabacion
-stream.close()          #Cerramos stream
-audio.terminate()
 
-waveFile=wave.open(archivo,'wb') #Creamos nuestro archivo
-waveFile.setnchannels(2) #Se designan los canales
-waveFile.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
-waveFile.setframerate(44100) #Pasamos la frecuencia de muestreo
-waveFile.writeframes(b''.join(frames))
-waveFile.close() #Cerramos el archivo
 
+def loop(audio):
+    while True: 
+        if GPIO.input(VibratePin)==0:                                                                                                                                                                                                                                                                                  
+            stream=audio.open(format=pyaudio.paInt16,channels=2,
+                                rate=44100,input=True, #rate es la frecuencia de muestreo 44.1KHz
+                                frames_per_buffer=1024)
+                        
+            print("Grabando ...") #Mensaje de que se inicio a grabar
+            frames=[] #Aqui guardamos la grabacion
+            #for i in range(0,int(44100/1024*duracion)):
+            while True:
+                data=stream.read(1024)
+                frames.append(data)
+
+                if GPIO.input(Gpin)==0: 
+                    stream.stop_stream()    #Detener grabacion
+                    stream.close()          #Cerramos stream
+                    audio.terminate()
+                    #print("La grabacion ha terminado ") #Mensaje de fin de grabación
+
+                    waveFile=wave.open(archivo,'wb') #Creamos nuestro archivo
+                    waveFile.setnchannels(2) #Se designan los canales
+                    waveFile.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
+                    waveFile.setframerate(44100) #Pasamos la frecuencia de muestreo
+                    waveFile.writeframes(b''.join(frames))
+                    waveFile.close() #Cerramos el archivo
+                    break
+            break
+setup()
+print("Listo para grabar presiona el boton ")
+loop(audio)
+print("La grabacion ha terminado ")
 clip = ('PruebaAudio1.wav')
 
 def LoadAudio_Turn2Decibels(clip):
@@ -113,3 +135,27 @@ if not os.path.exists(WAVEFORM_path_export):
 fig.savefig(os.path.join(WAVEFORM_path_export,image_filename_to_save)) 
 plt.close()"""
 
+""" 
+audio=pyaudio.PyAudio() #Iniciamos pyaudio
+#Abrimos corriente o flujo
+stream=audio.open(format=pyaudio.paInt16,channels=2,
+					rate=44100,input=True, #rate es la frecuencia de muestreo 44.1KHz
+					frames_per_buffer=1024)
+					
+print("Grabando ...") #Mensaje de que se inicio a grabar
+frames=[] #Aqui guardamos la grabacion
+for i in range(0,int(44100/1024*duracion)):
+	data=stream.read(1024)
+	frames.append(data)
+	
+print("La grabacion ha terminado ") #Mensaje de fin de grabación
+stream.stop_stream()    #Detener grabacion
+stream.close()          #Cerramos stream
+audio.terminate()
+
+waveFile=wave.open(archivo,'wb') #Creamos nuestro archivo
+waveFile.setnchannels(2) #Se designan los canales
+waveFile.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
+waveFile.setframerate(44100) #Pasamos la frecuencia de muestreo
+waveFile.writeframes(b''.join(frames))
+waveFile.close() #Cerramos el archivo"""

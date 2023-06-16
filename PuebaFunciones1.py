@@ -11,6 +11,7 @@ import scipy.io.wavfile as waves #libreria importante para los datos del audio
 from datetime import datetime
 from ctypes import *
 from contextlib import contextmanager
+import RPi.GPIO as GPIO
 
 
 
@@ -52,8 +53,16 @@ PolyFeatures_path_export1='poly features/OK'
 PolyFeatures_path_export2='poly features/NOK'
 Tonnetz_path_export1='tonnetz/OK'
 Tonnetz_path_export2='tonnetz/NOK'
+Empezar = 11
+Detener  = 13
 #clip = (r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
 
+def setup():
+	GPIO.setwarnings(False) 
+	GPIO.setmode(GPIO.BOARD)       # Numbers GPIOs by physical location
+	   # Set Green Led Pin mode to output
+	GPIO.setup(Detener, GPIO.IN, pull_up_down=GPIO.PUD_UP)      # Set Red Led Pin mode to output
+	GPIO.setup(Empezar, GPIO.IN, pull_up_down=GPIO.PUD_UP) 
 
 def LoadAudio_Turn2Decibels(clip):
     y, sr = librosa.load(clip) 
@@ -131,28 +140,39 @@ def noalsaerr():
 with noalsaerr():
     audio=pyaudio.PyAudio() #Iniciamos pyaudio
 #Abrimos corriente o flujo
-stream=audio.open(format=pyaudio.paInt16,channels=2,
-					rate=44100,input=True, #rate es la frecuencia de muestreo 44.1KHz
-					frames_per_buffer=1024)
-					
-print("Grabando ...") #Mensaje de que se inicio a grabar
-frames=[] #Aqui guardamos la grabacion
-for i in range(0,int(44100/1024*duracion)):
-	data=stream.read(1024)
-	frames.append(data)
-	
-print("La grabacion ha terminado ") #Mensaje de fin de grabación
-stream.stop_stream()    #Detener grabacion
-stream.close()          #Cerramos stream
-audio.terminate()
 
-waveFile=wave.open(archivo,'wb') #Creamos nuestro archivo
-waveFile.setnchannels(2) #Se designan los canales
-waveFile.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
-waveFile.setframerate(44100) #Pasamos la frecuencia de muestreo
-waveFile.writeframes(b''.join(frames))
-waveFile.close() #Cerramos el archivo
+def loop(audio):
+    while True: 
+        if GPIO.input(Empezar)==0:                                                                                                                                                                                                                                                                                  
+            stream=audio.open(format=pyaudio.paInt16,channels=2,
+                                rate=44100,input=True, #rate es la frecuencia de muestreo 44.1KHz
+                                frames_per_buffer=1024)
+                        
+            print("Grabando ...") #Mensaje de que se inicio a grabar
+            frames=[] #Aqui guardamos la grabacion
+            #for i in range(0,int(44100/1024*duracion)):
+            while True:
+                data=stream.read(1024)
+                frames.append(data)
 
+                if GPIO.input(Detener)==0: 
+                    stream.stop_stream()    #Detener grabacion
+                    stream.close()          #Cerramos stream
+                    audio.terminate()
+                    #print("La grabacion ha terminado ") #Mensaje de fin de grabación
+
+                    waveFile=wave.open(archivo,'wb') #Creamos nuestro archivo
+                    waveFile.setnchannels(2) #Se designan los canales
+                    waveFile.setsampwidth(audio.get_sample_size(pyaudio.paInt16))
+                    waveFile.setframerate(44100) #Pasamos la frecuencia de muestreo
+                    waveFile.writeframes(b''.join(frames))
+                    waveFile.close() #Cerramos el archivo
+                    break
+            break
+setup()
+print("Listo para grabar presiona el boton ")
+loop(audio)
+print("La grabacion ha terminado ")
 #clip=(r'/home/pi/python-projects/AudioLibrosaTest1/GraficaAudio/PruebaAudio1.wav')
 #winsound.PlaySound(clip,winsound.SND_FILENAME)
 clip=('PruebaAudio1.wav')
