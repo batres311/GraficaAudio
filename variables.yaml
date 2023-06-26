@@ -1,0 +1,71 @@
+WAVEFORM:
+ Carpetaok: 'waveform/OK'
+ Carpetanok: 'waveform/NOK'
+SPECTROGRAM:
+ Carpetaok: 'spectogram/OK'
+ Carpetanok: 'spectogram/NOK'
+GREYSPECTROGRAM:
+ Carpetaok: 'grey spectrogram/OK'
+ Carpetanok: 'grey spectrogram/NOK'
+MELSPECTROGRAM:
+ Carpetaok: 'mel spectrogram/OK'
+ Carpetanok: 'mel spectrogram/NOK'
+CHROMAGRAM:
+ Carpetaok: 'chromagram/OK'
+ Carpetanok: 'chromagram/NOK'
+MFCC:
+ Carpetaok: 'mfcc/OK'
+ Carpetanok: 'mfcc/NOK'
+DELTA_MFCC:
+ Carpetaok: 'delta mfccs/OK'
+ Carpetanok: 'delta mfccs/NOK'
+DELTA2_MFCC:
+ Carpetaok: 'delta2 mfccs/OK'
+ Carpetanok: 'delta2 mfccs/NOK'
+FvsA:
+ Carpetaok: 'FrequencyAmplitude/OK'
+ Carpetanok: 'FrequencyAmplitude/NOK'
+AMPLITUDEENV:
+ Carpetaok: 'amplitude envelope/OK'
+ Carpetanok: 'amplitude envelope/NOK'
+RMSE:
+ Carpetaok: 'root mean square energy/OK'
+ Carpetanok: 'root mean square energy/NOK'
+ZCR:
+ Carpetaok: 'zero croosing rate/OK'
+ Carpetanok: 'zero croosing rate/NOK'
+BER:
+ Carpetaok: 'band energy ratio/OK'
+ Carpetanok: 'band energy ratio/NOK'
+SpecCent:
+ Carpetaok: 'spectral centroid/OK'
+ Carpetanok: 'spectral centroid/NOK'
+Bandwidth:
+ Carpetaok: 'bandwidth/OK'
+ Carpetanok: 'bandwidth/NOK'
+SpecContrast:
+ Carpetaok: 'spectral contrast/OK'
+ Carpetanok: 'spectral contrast/NOK'
+SpecRollOff:
+ Carpetaok: 'spectral contrast/OK'
+ Carpetanok: 'spectral contrast/NOK'
+PolyFeatures:
+ Carpetaok: 'poly features/OK'
+ Carpetanok: 'poly features/NOK'
+Tonnetz:
+ Carpetaok: 'tonnetz/OK'
+ Carpetanok: 'tonnetz/NOK'
+
+BuenoMalo:
+ Bueno: "Bosch"
+ Malo: "BlackDecker"
+ 
+Frame_size: 1024
+Hop_lenght: 512
+Hop_size: 512
+Frame_rate: 44100
+Channels: 2
+Number_Mels: 90
+N_fft: 2048
+Number_MFCCs: 13
+NomGrabacion: "Audio"

@@ -12,50 +12,75 @@ from datetime import datetime
 from ctypes import *
 from contextlib import contextmanager
 import RPi.GPIO as GPIO
+import yaml
+import shutil
 
 
 
-WAVEFORM_path_export1 = 'waveform/OK'
-WAVEFORM_path_export2 = 'waveform/NOK'
-SPECTROGRAM_path_export1='spectogram/OK'
-SPECTROGRAM_path_export2='spectogram/NOK'
-GREYSPECTROGRAM_path_export1='grey spectrogram/OK'
-GREYSPECTROGRAM_path_export2='grey spectrogram/NOK'
-MELSPECTROGRAM_path_export1='mel spectrogram/OK'
-MELSPECTROGRAM_path_export2='mel spectrogram/NOK'
-CHROMAGRAM_path_export1='chromagram/OK'
-CHROMAGRAM_path_export2='chromagram/NOK'
-MFCC_path_export1='mfcc/OK'
-MFCC_path_export2='mfcc/NOK'
-DELTA_MFCC_path_export1='delta mfccs/OK'
-DELTA_MFCC_path_export2='delta mfccs/NOK'
-DELTA2_MFCC_path_export1='delta2 mfccs/OK'
-DELTA2_MFCC_path_export2='delta2 mfccs/NOK'
-FvsA_path_export1='FrequencyAmplitude/OK'
-FvsA_path_export2='FrequencyAmplitude/NOK'
-AMPLITUDEENV_path_export1='amplitude envelope/OK'
-AMPLITUDEENV_path_export2='amplitude envelope/NOK'
-RMSE_path_export1='root mean square energy/OK'
-RMSE_path_export2='root mean square energy/NOK'
-ZCR_path_export1='zero croosing rate/OK'
-ZCR_path_export2='zero croosing rate/NOK'
-BER_path_export1='band energy ratio/OK'
-BER_path_export2='band energy ratio/NOK'
-SpecCent_path_export1='spectral centroid/OK'
-SpecCent_path_export2='spectral centroid/NOK'
-Bandwidth_path_export1='bandwidth/OK'
-Bandwidth_path_export2='bandwidth/NOK'
-SpecContrast_path_export1='spectral contrast/OK'
-SpecContrast_path_export2='spectral contrast/NOK'
-SpecRollOff_path_export1='spectral rolloff/OK'
-SpecRollOff_path_export2='spectral rolloff/NOK'
-PolyFeatures_path_export1='poly features/OK'
-PolyFeatures_path_export2='poly features/NOK'
-Tonnetz_path_export1='tonnetz/OK'
-Tonnetz_path_export2='tonnetz/NOK'
+with open("variables.yaml", "r") as f:
+    yaml_content = yaml.full_load(f)
+
+WAVEFORM_path_export1 =yaml_content["WAVEFORM"]["Carpetaok"]
+WAVEFORM_path_export2 = yaml_content["WAVEFORM"]["Carpetanok"]
+SPECTROGRAM_path_export1=yaml_content["SPECTROGRAM"]["Carpetaok"]
+SPECTROGRAM_path_export2=yaml_content["SPECTROGRAM"]["Carpetanok"]
+GREYSPECTROGRAM_path_export1=yaml_content["GREYSPECTROGRAM"]["Carpetaok"]
+GREYSPECTROGRAM_path_export2=yaml_content["GREYSPECTROGRAM"]["Carpetanok"]
+MELSPECTROGRAM_path_export1=yaml_content["MELSPECTROGRAM"]["Carpetaok"]
+MELSPECTROGRAM_path_export2=yaml_content["MELSPECTROGRAM"]["Carpetanok"]
+CHROMAGRAM_path_export1=yaml_content["CHROMAGRAM"]["Carpetaok"]
+CHROMAGRAM_path_export2=yaml_content["CHROMAGRAM"]["Carpetanok"]
+MFCC_path_export1=yaml_content["MFCC"]["Carpetaok"]
+MFCC_path_export2=yaml_content["MFCC"]["Carpetanok"]
+DELTA_MFCC_path_export1=yaml_content["DELTA_MFCC"]["Carpetaok"]
+DELTA_MFCC_path_export2=yaml_content["DELTA_MFCC"]["Carpetanok"]
+DELTA2_MFCC_path_export1=yaml_content["DELTA2_MFCC"]["Carpetaok"]
+DELTA2_MFCC_path_export2=yaml_content["DELTA2_MFCC"]["Carpetanok"]
+FvsA_path_export1=yaml_content["FvsA"]["Carpetaok"]
+FvsA_path_export2=yaml_content["FvsA"]["Carpetanok"]
+AMPLITUDEENV_path_export1=yaml_content["AMPLITUDEENV"]["Carpetaok"]
+AMPLITUDEENV_path_export2=yaml_content["AMPLITUDEENV"]["Carpetanok"]
+RMSE_path_export1=yaml_content["RMSE"]["Carpetaok"]
+RMSE_path_export2=yaml_content["RMSE"]["Carpetanok"]
+ZCR_path_export1=yaml_content["ZCR"]["Carpetaok"]
+ZCR_path_export2=yaml_content["ZCR"]["Carpetanok"]
+BER_path_export1=yaml_content["BER"]["Carpetaok"]
+BER_path_export2=yaml_content["BER"]["Carpetanok"]
+SpecCent_path_export1=yaml_content["SpecCent"]["Carpetaok"]
+SpecCent_path_export2=yaml_content["SpecCent"]["Carpetanok"]
+Bandwidth_path_export1=yaml_content["Bandwidth"]["Carpetaok"]
+Bandwidth_path_export2=yaml_content["Bandwidth"]["Carpetanok"]
+SpecContrast_path_export1=yaml_content["SpecContrast"]["Carpetaok"]
+SpecContrast_path_export2=yaml_content["SpecContrast"]["Carpetanok"]
+SpecRollOff_path_export1=yaml_content["SpecRollOff"]["Carpetaok"]
+SpecRollOff_path_export2=yaml_content["SpecRollOff"]["Carpetanok"]
+PolyFeatures_path_export1=yaml_content["PolyFeatures"]["Carpetaok"]
+PolyFeatures_path_export2=yaml_content["PolyFeatures"]["Carpetanok"]
+Tonnetz_path_export1=yaml_content["Tonnetz"]["Carpetaok"]
+Tonnetz_path_export2=yaml_content["Tonnetz"]["Carpetanok"]
+
 Empezar = 11
 Detener  = 13
-#clip = (r'C:\Users\BHC4SLP\Documents\Python Projects\Proyecto2-GraficaAudio\PruebaAudio1.wav')
+
+Bosch_path_export = yaml_content["BuenoMalo"]["Bueno"]
+BlackDecker_path_export = yaml_content["BuenoMalo"]["Malo"]
+
+FRAME_SIZE = yaml_content["Frame_size"]
+HOP_LENGTH = yaml_content["Hop_lenght"]
+FRAME_RATE = yaml_content["Frame_rate"]
+CHANNELS = yaml_content["Channels"]
+NUMBER_MELS = yaml_content["Number_Mels"]
+N_FTT = yaml_content["N_fft"]
+N_MFCC = yaml_content["Number_MFCCs"]
+HOP_SIZE= yaml_content["Hop_size"]
+NOMBREGRABACION=yaml_content["NomGrabacion"]
+
+duracion=5 #Periodo de grabacion de 5 segundos
+FechaHoraAUDIO=datetime.now()
+FechaHoraAUDIO=FechaHoraAUDIO.replace(microsecond=0)
+FechaHoraAUDIOFormat=FechaHoraAUDIO.strftime("%Y_%m_%d_%H_%M_%S")
+archivo=NOMBREGRABACION+"_"+FechaHoraAUDIOFormat +".wav"
+
 
 def setup():
 	GPIO.setwarnings(False) 
@@ -74,18 +99,19 @@ def LoadAudio_Turn2Decibels(clip):
     return y,S_db,sr
 
 def guardarimagen(path_export1,path_export2,res,NombreImag,fig):
-    audio_filename = os.path.basename(os.path.normpath(clip)) 
-    FechaHora=datetime.now()
-    FechaHora=FechaHora.replace(microsecond=0)
-    image_filename_to_save = str(audio_filename).replace(".wav", "-", 1) + NombreImag+" "+str(FechaHora).replace(":", "-", 2) +".png" 
+    audio_filename=archivo
+    image_filename_to_save = str(audio_filename).replace(".wav", "_", 1) + NombreImag+".png" 
     if not os.path.exists(path_export1): 
         os.makedirs(path_export1, exist_ok=True) 
     if not os.path.exists(path_export2): 
         os.makedirs(path_export2, exist_ok=True)
-    if res=='ok':
-        fig.savefig(os.path.join(path_export1,image_filename_to_save))
+    if res=='ok'or res=='OK' or res=='Ok':
+        image_filename_to_save2 ="Bosch"+image_filename_to_save 
+        fig.savefig(os.path.join(path_export1,image_filename_to_save2))
     else:
-        fig.savefig(os.path.join(path_export2,image_filename_to_save))
+        image_filename_to_save2 ="BlackDecker"+image_filename_to_save 
+        fig.savefig(os.path.join(path_export2,image_filename_to_save2))
+  
 
 def fancy_amplitude_envelope(signal, frame_size, hop_length):
     """Fancier Python code to calculate the amplitude envelope of a signal with a given frame size."""
@@ -120,8 +146,6 @@ def band_energy_ratio(spectrogram, split_frequency, sample_rate):
     
     return np.array(band_energy_ratio)
 
-duracion=5 #Periodo de grabacion de 5 segundos
-archivo="PruebaAudio1.wav" #Se define el nombre del archivo donde se guardara la grabación
 
 ERROR_HANDLER_FUNC = CFUNCTYPE(None, c_char_p, c_int, c_char_p, c_int, c_char_p)
 
@@ -175,10 +199,21 @@ loop(audio)
 print("La grabacion ha terminado ")
 #clip=(r'/home/pi/python-projects/AudioLibrosaTest1/GraficaAudio/PruebaAudio1.wav')
 #winsound.PlaySound(clip,winsound.SND_FILENAME)
-clip=('PruebaAudio1.wav')
+#clip=('PruebaAudio1.wav')
 
 res=input("Ingresa ok si es buena grabacion y nok si es mala: ")
-y,S_db,sr=LoadAudio_Turn2Decibels(clip)
+y,S_db,sr=LoadAudio_Turn2Decibels(archivo)
+if not os.path.exists(Bosch_path_export): 
+    os.makedirs(Bosch_path_export, exist_ok=True) 
+if not os.path.exists(BlackDecker_path_export): 
+    os.makedirs(BlackDecker_path_export, exist_ok=True)
+
+if res=='ok' or res=='OK' or res=='Ok':
+    shutil.move(archivo, Bosch_path_export+"/"+archivo)
+    os.rename(Bosch_path_export+"/"+archivo, Bosch_path_export+"/"+"Bosch"+archivo)
+else:
+     shutil.move(archivo, BlackDecker_path_export+"/"+archivo)
+     os.rename(BlackDecker_path_export+"/"+archivo, BlackDecker_path_export+"/"+"BlackDecker"+archivo)   
 
 """ Waveform"""
 # Simple WAVEFORM to check clip trimming accuracy 
@@ -190,8 +225,8 @@ guardarimagen(WAVEFORM_path_export1,WAVEFORM_path_export2,res,'waveform',fig)
 plt.close()
 
 """Amplitude envelope"""
-FRAME_SIZE = 1024
-HOP_LENGTH = 512
+#FRAME_SIZE = 1024
+#HOP_LENGTH = 512
 
 # number of frames in amplitude envelope
 ae_y = fancy_amplitude_envelope(y, FRAME_SIZE, HOP_LENGTH)
@@ -281,7 +316,7 @@ plt.close()
 
 """Mel Spectrogram"""
 #Extracting Mel Spectrogram
-mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=2048, hop_length=512, n_mels=90)
+mel_spectrogram = librosa.feature.melspectrogram(y=y, sr=sr, n_fft=N_FTT, hop_length=HOP_LENGTH, n_mels=NUMBER_MELS)
 log_mel_spectrogram = librosa.power_to_db(mel_spectrogram)
 
 plt.figure(figsize=(25, 10))
@@ -307,7 +342,7 @@ plt.close()
 
 """MFCCs"""
 #MFCC representation - object-oriented interface 
-mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13, n_fft=1200) 
+mfccs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=N_MFCC, n_fft=1200) 
 fig, ax = plt.subplots() 
 img = librosa.display.specshow(mfccs, x_axis='time') 
 plt.colorbar(format="%+2.f")
